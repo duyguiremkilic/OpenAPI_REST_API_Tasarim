@@ -1,0 +1,340 @@
+openapi: 3.1.0
+info:
+  title: University Library API
+  description: API for managing university library resources
+  version: 1.0.0
+servers:
+  - url: https://api.university-library.example.com/v1
+    description: Production server
+
+tags:
+  - name: Books
+    description: Operations related to books management
+  - name: Students
+    description: Operations related to student management
+  - name: Loans
+    description: Operations related to book loans
+
+paths:
+  /books:
+    get:
+      tags: [Books]
+      summary: List all books
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+      responses:
+        '200':
+          description: A paginated list of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+    post:
+      tags: [Books]
+      summary: Add a new book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookInput'
+      responses:
+        '201':
+          description: Book created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+
+  /books/{id}:
+    get:
+      tags: [Books]
+      summary: Get book details
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Book details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+    put:
+      tags: [Books]
+      summary: Update book
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookInput'
+      responses:
+        '200':
+          description: Book updated successfully
+    delete:
+      tags: [Books]
+      summary: Delete book
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          description: Book deleted successfully
+
+  /students:
+    get:
+      tags: [Students]
+      summary: List all students
+      responses:
+        '200':
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+    post:
+      tags: [Students]
+      summary: Add new student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentInput'
+      responses:
+        '201':
+          description: Student created successfully
+
+  /students/{id}:
+    get:
+      tags: [Students]
+      summary: Get student details
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Student details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+    put:
+      tags: [Students]
+      summary: Update student
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentInput'
+      responses:
+        '200':
+          description: Student updated successfully
+    delete:
+      tags: [Students]
+      summary: Delete student
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          description: Student deleted successfully
+
+  /loans:
+    get:
+      tags: [Loans]
+      summary: List all loans
+      responses:
+        '200':
+          description: List of loans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Loan'
+    post:
+      tags: [Loans]
+      summary: Create new loan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanInput'
+      responses:
+        '201':
+          description: Loan created successfully
+
+  /loans/{id}:
+    get:
+      tags: [Loans]
+      summary: Get loan details
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Loan details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+
+  /loans/{id}/return:
+    patch:
+      tags: [Loans]
+      summary: Return book
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Book returned successfully
+
+components:
+  schemas:
+    Book:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        author:
+          type: string
+        isbn:
+          type: string
+          pattern: '^\d{3}-\d{10}$'
+        publisher:
+          type: string
+        pageCount:
+          type: integer
+        stock:
+          type: integer
+      required: [id, title, author, isbn, stock]
+
+    BookInput:
+      type: object
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        isbn:
+          type: string
+          pattern: '^\d{3}-\d{10}$'
+        publisher:
+          type: string
+        pageCount:
+          type: integer
+        stock:
+          type: integer
+      required: [title, author, isbn, stock]
+
+    Student:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        studentNumber:
+          type: string
+        email:
+          type: string
+          format: email
+        isActive:
+          type: boolean
+      required: [id, name, studentNumber, email, isActive]
+
+    StudentInput:
+      type: object
+      properties:
+        name:
+          type: string
+        studentNumber:
+          type: string
+        email:
+          type: string
+          format: email
+        isActive:
+          type: boolean
+      required: [name, studentNumber, email]
+
+    Loan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        studentId:
+          type: string
+          format: uuid
+        bookId:
+          type: string
+          format: uuid
+        loanDate:
+          type: string
+          format: date
+        returnDate:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+          enum: [ongoing, returned, late]
+      required: [id, studentId, bookId, loanDate, status]
+
+    LoanInput:
+      type: object
+      properties:
+        studentId:
+          type: string
+          format: uuid
+        bookId:
+          type: string
+          format: uuid
+      required: [studentId, bookId]
+
+  parameters:
+    id:
+      name: id
+      in: path
+      description: Resource ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    page:
+      name: page
+      in: query
+      description: Page number
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    size:
+      name: size
+      in: query
+      description: Items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+
+  responses:
+    BadRequest:
+      description: Invalid request data
+    NotFound:
+      description: Resource not found
+    ServerError:
+      description: Internal server error
